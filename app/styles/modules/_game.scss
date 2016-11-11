@@ -40,13 +40,15 @@ button {
     float: left;
   }
 }
-
+.win{
+  background-color: #060;
+}
 .x {
-  background-image: url('/public/images/x.svg');
+  background-image: url('../images/x.svg');
   background-repeat: no-repeat;
 }
 
 .o {
-  background-image: url('/public/images/o.svg');
+  background-image: url('../images/o.svg');
   background-repeat: no-repeat;
 }

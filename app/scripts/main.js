@@ -47,11 +47,13 @@ function setupPlayerInput(){
       this.classList.add(player);
     positions=getGamePositions(); //get positions again, based on last user input
     winner=getWinner(positions);
-
     console.log(winner);
+    if(winner){
+      formatWinner(winner);
+      return; //gameover
+    }
 
     var winPatterns=[bot+bot+"b",bot+"b"+bot,"b"+bot+bot];
-    var defencePatterns=[player+player+"b",player+"b"+player,"b"+player+player];
 
     //try to win first
     var next=fill(positions,winPatterns);
@@ -59,21 +61,68 @@ function setupPlayerInput(){
     if(next){
       var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
       nextBlock.classList.add(bot);
+      positions=getGamePositions();
+      winner=getWinner(positions);
+      console.log("winner:"+winner);
+      if(winner){
+        formatWinner(winner);
+        return; //gameover
+      }
+    }else{
+      //second is to try and defend
+      var defencePatterns=[player+player+"b",player+"b"+player,"b"+player+player];
+      next=fill(positions,defencePatterns);
+      console.log("fill " + next + " to defend");
+      if(next){
+        var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
+        nextBlock.classList.add(bot);
+      }else{ //third, try to position bot side by side, in readiness for next win
+        var strategicWinPatterns=[bot+"bb","bb"+bot,"b"+bot+"b"];
+        next=fill(positions,strategicWinPatterns);
+        console.log("fill " + next + " to position strategically");
+        if(next){
+          var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
+          nextBlock.classList.add(bot);
+        }else{ //must be early stages, try to positionn right next to the player
+          var strategicDefencePatterns=[player+"bb","bb"+player,"b"+player+"b"];
+          next=fill(positions,strategicDefencePatterns);
+          console.log("fill " + next + " to position strategically");
+          if(next){
+            var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
+            nextBlock.classList.add(bot);
+          }else{
+            //#TODO: just fill the remaining block , it looks like a tie
+          }
+        }
+      }
     }
-    positions=getGamePositions();
-    winner=getWinner(positions);
-    console.log("winner:"+winner);
 
-    //second is to try and defend
-    next=fill(positions,defencePatterns);
-    console.log("fill " + next + " to defend");
-    if(next){
-      var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
-      nextBlock.classList.add(bot);
-    }
-    //third, strategic fill when the game is early
-    //#TODO: strategic fill
   };
+
+  /**
+    * format winner order
+    */
+  function formatWinner(winner){
+    if(winner[1]==winner[3] || winner[2]==winner[4]){ //row or column
+      for(var r=winner[1];r<=winner[3];r++){
+        for(var c=winner[2];c<=winner[4];c++){
+          var block=document.querySelector("#r" + r + "c" + c);
+          block.classList.add("win");
+        }
+      }
+    }else if(winner[1]==1 && winner[2]==3){ //bottom left to top right
+      for(var i=1;i<4;i++){
+        var block=document.querySelector("#r" + i + "c" + (4-i));
+        block.classList.add("win");
+      }
+    }else if(winner[1]==1 && winner[2]==1){ //top left to bottom right
+      for(var i=1;i<4;i++){
+        var block=document.querySelector("#r" + i + "c" + i);
+        block.classList.add("win");
+      }
+    }
+  }
+
   /**
     * Try to win first (look for two consecutive bot options and fill in the third)
     */
@@ -121,28 +170,37 @@ function setupPlayerInput(){
   function getWinner(positions){
     //look for completed rows or columns in positions
     //return the winner if found
+    var result=false;
     for(var i=0;i<3;i++){
       var column=positions[0][i]+positions[1][i]+positions[2][i];
       if(positions[i]==="xxx"){
-        return "x";
+        result=["x",i+1,1,i+1,3];
       } else if(positions[i]==="ooo"){
-        return "o";
+        result=["o",i+1,1,i+1,3];
       } else if(column==="xxx") {
-        return "x";
+        result=["x",1,i+1,3,i+1];
       } else if(column==="ooo"){
-        return "o";
+        result=["o",1,i+1,3,i+1];
       }
+      if(result)
+        break;
     }
+
     //check for completed positions diagonally
     var diag1=positions[0][0]+positions[1][1]+positions[2][2];
     var diag2=positions[0][2]+positions[1][1]+positions[2][0];
-    if(diag1==="xxx" || diag2==="xxx"){
-      return "x";
-    }else if(diag1==="ooo" || diag2==="ooo  "){
-      return "o";
-    }else{
-      return false; //return false if no-one has won
+    if(!result){
+      if(diag1==="xxx"){
+        result=["x",1,1,3,3];
+      }else if (diag2==="xxx"){
+        result=["x",1,3,3,1];
+      }else if(diag1==="ooo"){
+        result=["o",1,1,3,3];
+      }else if(diag2==="ooo"){
+        result=["0",1,3,3,1];
+      }
     }
+    return result;
   };
 
   function getGamePositions(){
