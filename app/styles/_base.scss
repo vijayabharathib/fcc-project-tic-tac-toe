@@ -1,0 +1,43 @@
+$color-white: #fff;
+$color-black: #000;
+$color-white-transparent-tint: rgba(255, 255, 255, .7);
+$color-white-transparent-shade: rgba(255, 255, 255, .3);
+$color-black-transparent-tint: rgba(0, 0, 0, .7);
+$color-black-transparent-shade: rgba(0, 0, 0, .3);
+
+
+$color-background: #41474c;
+$color-checked: #44c8e5;
+$color-shadow: #323435;
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  color: $color-checked;
+  font-size: 16px;
+  background: $color-background;
+  @media(min-width: 321px) {
+    padding-top: 1em;
+  }
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin-bottom: 5px;
+}
+
+.container {
+  max-width: 320px;
+  margin: 0 auto;
+  padding: 5px;
+  box-sizing: border-box;
+  @media(min-width: 321px) {
+    border-radius: 10px;
+  }
+}
