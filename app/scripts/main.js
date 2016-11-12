@@ -8,86 +8,148 @@ document.addEventListener("DOMContentLoaded",function(e){
     * once content is loaded
     */
   setupPlayerOption();
-  setupPlayerInput();
+  processPlayerInput();
 });
 
+/**
+  * handle player choice of x or o at the start of each game
+  * get the game board ready
+  * let the bot make first move if player choses to be 'o'
+  */
 function setupPlayerOption(){
+
+  //called to handle user choice before each game
+  //also starts the game if bot has to make first move
   var playerChoice=function(){
+    // start the game by revealing the board
     var buttons=document.querySelectorAll(".game button");
     for(var i=0;i<buttons.length;i++){
       buttons[i].classList.remove("reset");
     }
+    //remember player choice and determine option for bot
     bot=(this.classList.contains("x")) ? "o" : "x";
     player=(bot==="x") ? "o" : "x";
+    // clone option panel
     var game=document.querySelector('.game');
     game.classList.remove('off');
     game.classList.add('on');
+    // set the proper status for user experience
     var status=document.querySelector('.status');
     status.innerText="Game on";
+    //make a move -OR- ask the player to start
     if(bot==="x")
       firstMove();
+    else
+      status.innerText="Your move";
   };
 
+  /**
+    * make a random pick if bot plays first
+    * each block has #rXcY id hook like #r1c1
+    */
   function firstMove(){
     var r=Math.floor(Math.random()*3)+1;
     var c=Math.floor(Math.random()*3)+1;
     var rand=document.querySelector("#r"+ r + "c" +c);
-    rand.classList.add("x");
+    rand.classList.add("x"); // add bot class
   };
 
+  //call player choice, once the user makes a selection
   var playerOptions=document.querySelectorAll('.player');
   playerOptions[0].onclick=playerChoice;
   playerOptions[1].onclick=playerChoice;
 
 }
 
-function setupPlayerInput(){
-  var buttons=document.querySelectorAll(".game button");
+/**
+  * process user selection during game
+  * determine if the game is over
+  * if the game is still on, send bot's response
+  * and evaluate if the game is still on.
+  */
+function processPlayerInput(){
+  /**
+    * handle user click on the game blocks
+    */
   var buttonClickHandler=function(){
+    //get current board positions
     var positions=getGamePositions();
+    //check for winner positions
     var winner=getWinner(positions);
     // do nothing if the block already has x or o (and the game is still on)
     if(!winner && !this.classList.contains("x") && !this.classList.contains("o")){
       this.classList.add(player);
     }
-    /*positions=getGamePositions(); //get positions again, based on last user input
-    winner=getWinner(positions);
-    console.log(winner);
-    if(winner){
-      formatWinner(winner);
-      return; //gameover
-    }*/
-    var gameStatus=evaluateGameStatus(); //for user input
+
+    var gameStatus=evaluateGameStatus(); //evaluate the board for user input
     console.log("game status after user input: " + gameStatus);
     if(gameStatus=="Game on"){
-      botResponse();
-      evaluateGameStatus(); //for bot response
+      botResponse(); //if the game is still in progress, respond back with selection
+      evaluateGameStatus(); //evaluate the board for bot response
     }
   };
 
+  /**
+    * evaluate the board for current status
+    * possible game status
+    * -- "Game on" --default
+    * -- "You win"
+    * -- "Bot wins"
+    * -- "It's a tie"
+    */
   function evaluateGameStatus(){
     result="Game on";
+    var status=document.querySelector('.status');
+
     positions=getGamePositions(); //get positions again, based on last user input
     winner=getWinner(positions);
+
     if(winner){
+      /**
+        * if either the player or the bot has won
+        * format the board and send the status back
+        * call back resetGame to get ready for next game
+        */
       formatWinner(winner);
-      result=(winner[0]==bot)? "Bot ("+ bot + ") wins." : "You (" + player + ") win!";
+      if(winner[0]==bot){
+        result="Bot ("+ bot + ") wins.";
+        status.classList.add("lost");
+      }else{
+        result="You (" + player + ") win!";
+        status.classList.add("won");
+      }
+      /*result=(winner[0]==bot)? "Bot ("+ bot + ") wins." : "You (" + player + ") win!";
+      status.classList.add("won"); //call for attention*/
       window.setTimeout(resetGame,3000);
     }else if (gameTie()){
+      //if it's a tie call back resetGame to get ready for next game
       result="It's a tie!";
+      status.classList.add("tie"); //call for attention
       window.setTimeout(resetGame,3000);
     }
-    var status=document.querySelector('.status');
+    //update status field
     status.innerText=result;
     return result;
   }
 
+  //get ready for the next game
   function resetGame(){
+    //reset player choice
     bot="b";
     player="b";
+    /**
+      * set the flag to game off
+      * this will hide the board and show the option panel
+      * for user to make a choice again
+      */
     var game=document.querySelector('.game');
     game.classList.remove('on');
     game.classList.add('off');
+    /**
+      * remove earlier player and bot selections from blocks
+      * add reset class for ux
+      * remove win class to reset any highlights of won block order
+      */
     var buttons=document.querySelectorAll(".game button");
     for(var i=0;i<buttons.length;i++){
       buttons[i].classList.add("reset");
@@ -95,51 +157,52 @@ function setupPlayerInput(){
       buttons[i].classList.remove("o");
       buttons[i].classList.remove("win");
     }
+    //reset status field
+    var status=document.querySelector('.status');
+    status.classList.remove("won");
+    status.classList.remove("tie");
+    status.classList.remove("lost");
+    status.innerText="...";
   }
 
+  //boolean answer "is it a tie?" (true / false )
   function gameTie(){
     positions=getGamePositions();
     winner=getWinner(positions);
-    return (!winner && !positions.toString().includes("b")); //no one has won and no blanks;
+    //no one has won and no blanks (all blocks filled in)
+    return (!winner && !positions.toString().includes("b"));
   }
+
+  /**
+    * the brain of the bot
+    * first, try to win, this is important
+    *  don't give another option for the player
+    * second, try to defend, cut off player from winning in the next move
+    * third, in anticipation to win in the next move, create a series
+    * fourth, in early stages of the game, stay close to the player
+    * fifth, looks like the game is almost at the end, may be one block left
+    *  just fill it in.
+    */
   function botResponse(){
     positions=getGamePositions(); //get current game positions
-    var winPatterns=[bot+bot+"b",bot+"b"+bot,"b"+bot+bot];
     //try to win first
+    var winPatterns=[bot+bot+"b",bot+"b"+bot,"b"+bot+bot];
     var next=fillNextBestSlot(positions,winPatterns);
-    console.log("fill " + next + " to win.");
     if(next){
-      /*var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
-      nextBlock.classList.add(bot);*/
-      /*positions=getGamePositions();
-      winner=getWinner(positions);
-      console.log("winner:"+winner);
-      if(winner){
-        formatWinner(winner);
-        return; //gameover
-      }*/
+
     }else{
       //second is to try and defend
       var defencePatterns=[player+player+"b",player+"b"+player,"b"+player+player];
       next=fillNextBestSlot(positions,defencePatterns);
-      console.log("fill " + next + " to defend");
       if(next){
-        /*var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
-        nextBlock.classList.add(bot);*/
       }else{ //third, try to position bot side by side, in readiness for next win
         var strategicWinPatterns=[bot+"bb","bb"+bot,"b"+bot+"b"];
         next=fillNextBestSlot(positions,strategicWinPatterns);
-        console.log("fill " + next + " to position strategically");
         if(next){
-          /*var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
-          nextBlock.classList.add(bot);*/
         }else{ //must be early stages, try to position right next to the player
           var strategicDefencePatterns=[player+"bb","bb"+player,"b"+player+"b"];
           next=fillNextBestSlot(positions,strategicDefencePatterns);
-          console.log("fill " + next + " to position next to player");
           if(next){
-            /*var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
-            nextBlock.classList.add(bot);*/
           }else{
             var oneLastSlotPatterns=[
               player+"b"+bot,
@@ -150,12 +213,8 @@ function setupPlayerInput(){
               player+bot+"b"
             ];
             next=fillNextBestSlot(positions,oneLastSlotPatterns);
-            console.log("fill " + next + " to cover last position");
             if(next){
-              /*var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
-              nextBlock.classList.add(bot);*/
             }
-            //#TODO: still remaining block is not filled
           }
         }
       }
@@ -209,10 +268,6 @@ function setupPlayerInput(){
         result= [r,c];
       }
     }
-    /*if(result){
-      console.log("row/col result:" + result);
-      return result;
-    }*/
 
     //check for completed positions diagonally
     var diag1=positions[0][0]+positions[1][1]+positions[2][2];
@@ -291,6 +346,7 @@ function setupPlayerInput(){
     return gamePositions;
   };
 
+  var buttons=document.querySelectorAll(".game button");
   for(var i=0;i<buttons.length;i++){
     buttons[i].onclick=buttonClickHandler;
   }
