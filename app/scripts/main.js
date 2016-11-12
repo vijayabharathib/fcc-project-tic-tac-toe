@@ -6,9 +6,6 @@
 document.addEventListener("DOMContentLoaded",function(e){
   /**
     * once content is loaded
-    * bind slider functionality - to update text box
-    * bind text box functionality - to update slider
-    * bind button click to start/stop clock
     */
   setupPlayerOption();
   setupPlayerInput();
@@ -20,6 +17,11 @@ function setupPlayerOption(){
     bot=(this.classList.contains("x")) ? "o" : "x";
     player=(bot==="x") ? "o" : "x";
     console.log("bot:" + bot + ";player:" + player);
+    var game=document.querySelector('.game');
+    game.classList.remove('off');
+    game.classList.add('on');
+    var status=document.querySelector('.status');
+    status.innerText="Game on";
     if(bot==="x")
       firstMove();
   };
@@ -43,8 +45,9 @@ function setupPlayerInput(){
     var positions=getGamePositions();
     var winner=getWinner(positions);
     // do nothing if the block already has x or o (and the game is still on)
-    if(!winner && !this.classList.contains("x") && !this.classList.contains("o"))
+    if(!winner && !this.classList.contains("x") && !this.classList.contains("o")){
       this.classList.add(player);
+    }
     positions=getGamePositions(); //get positions again, based on last user input
     winner=getWinner(positions);
     console.log(winner);

@@ -9,5 +9,7 @@ This app can be accessed through [https://vijayabharathib.github.io/fcc-project-
 - [x] No jQuery or Bootstrap or any other library for that matter (how else one can learn?)
 - [x] Accessibility through keyboard
 
+**First taste of AI**
+At about 11.30pm on 11th Nov 2016, this bot became self-aware (so to speak). I was just fixing few last glitches (half asleep), and this bot started beating me several games straight. It is a weird feeling, but feels good. I'll sleep well tonight.
 [comment]: http://justfor.comments "Back reference to links"
 [fcc]: http://freecodecamp.com/ "free code camp site"
