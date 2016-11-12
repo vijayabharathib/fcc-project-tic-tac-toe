@@ -7,25 +7,29 @@
 }
 
 .game {
-  margin: 0 auto;
   position: relative;
-  .shutter{
+  margin: 0 auto;
+
+  .shutter {
     position: absolute;
-    height: 100%;
-    width: 100%;
-    background: $color-black-transparent-85;
     top: 0;
     left: 0;
-    font-size: 2em;
+    width: 100%;
+    height: 100%;
     padding: .5em;
-    box-sizing: border-box;
     transition: color 300ms ease, transform 300ms ease 300ms;
     border-radius: 5px;
+    background: $color-black-transparent-85;
+    font-size: 2em;
+    box-sizing: border-box;
   }
-  &.on .shutter{
-    transform: scaleY(0);
-    color: $color-black-transparent-85;
-    transition: color 300ms ease, transform 300ms ease 300ms;
+
+  &.on { //close shutter when game starts
+    .shutter {
+      transform: scaleY(0);
+      transition: color 300ms ease, transform 300ms ease 300ms;
+      color: $color-black-transparent-85;
+    }
   }
 }
 
@@ -37,35 +41,41 @@ button {
   border-radius: 3px;
   background: $color-shadow;
   box-shadow: inset 0 0 8px 4px $color-black-transparent-70;
-
-
 }
 
-h2.status {
+h2 {
+  &.status {
+    display: inline-block;
+    width: 100%;
+    margin: 0 auto;
+    padding: .6em;
+    color: $color-white-transparent-70;
+    text-align: center;
+    box-shadow: inset 0 0 8px 4px $color-black-transparent-70;
+    box-sizing: border-box;
+    border-radius: 5px;
+  }
+}
+
+.players {
+  width: 100%;
+  margin-top: 4em;
+  /**
+    * the following float should be applied only to player choice buttons
+    * NOT to the game buttons, otherwise, order of the boxes will move around
+    * due to the float
+    */
+  .x { float: left;}
+  .o { float: right;}
+}
+
+.player {
   display: inline-block;
-  width: 100%;
-  margin: 0 auto;
-  padding: .6em;
-  text-align: center;
-  box-sizing: border-box;
-  box-shadow: inset 0 0 8px 4px $color-black-transparent-70;
-  color: $color-white-transparent-70;
-}
-
-.players{
-  margin-top: 5em;
-  width: 100%;
-  .x{ float: left;}
-  .o{ float: right;}
-}
-
-.player{
   width: 80px;
   height: 80px;
-  display: inline-block;
 }
 
-.win{
+.win {
   background-color: $color-green;
 }
 

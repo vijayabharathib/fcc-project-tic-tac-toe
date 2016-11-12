@@ -13,10 +13,8 @@ document.addEventListener("DOMContentLoaded",function(e){
 
 function setupPlayerOption(){
   var playerChoice=function(){
-    console.log("inside player choice");
     bot=(this.classList.contains("x")) ? "o" : "x";
     player=(bot==="x") ? "o" : "x";
-    console.log("bot:" + bot + ";player:" + player);
     var game=document.querySelector('.game');
     game.classList.remove('off');
     game.classList.add('on');
@@ -48,59 +46,97 @@ function setupPlayerInput(){
     if(!winner && !this.classList.contains("x") && !this.classList.contains("o")){
       this.classList.add(player);
     }
-    positions=getGamePositions(); //get positions again, based on last user input
+    /*positions=getGamePositions(); //get positions again, based on last user input
     winner=getWinner(positions);
     console.log(winner);
     if(winner){
       formatWinner(winner);
       return; //gameover
+    }*/
+    var gameStatus=evaluateGameStatus(); //for user input
+    console.log("game status after user input: " + gameStatus);
+    if(gameStatus=="Game on"){
+      botResponse();
+      evaluateGameStatus(); //for bot response
     }
+  };
 
+  function evaluateGameStatus(){
+    result="Game on";
+    positions=getGamePositions(); //get positions again, based on last user input
+    winner=getWinner(positions);
+    if(winner){
+      formatWinner(winner);
+      result=(winner[0]==bot)? "Bot ("+ bot + ") wins." : "You (" + player + ") win!";
+    }else if (gameTie()){
+      result="It's a tie!";
+    }
+    var status=document.querySelector('.status');
+    status.innerText=result;
+    return result;
+  }
+  function gameTie(){
+    positions=getGamePositions();
+    winner=getWinner(positions);
+    return (!winner && !positions.toString().includes("b")); //no one has won and no blanks;
+  }
+  function botResponse(){
+    positions=getGamePositions(); //get current game positions
     var winPatterns=[bot+bot+"b",bot+"b"+bot,"b"+bot+bot];
-
     //try to win first
-    var next=fill(positions,winPatterns);
+    var next=fillNextBestSlot(positions,winPatterns);
     console.log("fill " + next + " to win.");
     if(next){
-      var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
-      nextBlock.classList.add(bot);
-      positions=getGamePositions();
+      /*var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
+      nextBlock.classList.add(bot);*/
+      /*positions=getGamePositions();
       winner=getWinner(positions);
       console.log("winner:"+winner);
       if(winner){
         formatWinner(winner);
         return; //gameover
-      }
+      }*/
     }else{
       //second is to try and defend
       var defencePatterns=[player+player+"b",player+"b"+player,"b"+player+player];
-      next=fill(positions,defencePatterns);
+      next=fillNextBestSlot(positions,defencePatterns);
       console.log("fill " + next + " to defend");
       if(next){
-        var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
-        nextBlock.classList.add(bot);
+        /*var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
+        nextBlock.classList.add(bot);*/
       }else{ //third, try to position bot side by side, in readiness for next win
         var strategicWinPatterns=[bot+"bb","bb"+bot,"b"+bot+"b"];
-        next=fill(positions,strategicWinPatterns);
+        next=fillNextBestSlot(positions,strategicWinPatterns);
         console.log("fill " + next + " to position strategically");
         if(next){
-          var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
-          nextBlock.classList.add(bot);
-        }else{ //must be early stages, try to positionn right next to the player
+          /*var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
+          nextBlock.classList.add(bot);*/
+        }else{ //must be early stages, try to position right next to the player
           var strategicDefencePatterns=[player+"bb","bb"+player,"b"+player+"b"];
-          next=fill(positions,strategicDefencePatterns);
-          console.log("fill " + next + " to position strategically");
+          next=fillNextBestSlot(positions,strategicDefencePatterns);
+          console.log("fill " + next + " to position next to player");
           if(next){
-            var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
-            nextBlock.classList.add(bot);
+            /*var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
+            nextBlock.classList.add(bot);*/
           }else{
-            //#TODO: just fill the remaining block , it looks like a tie
+            var oneLastSlotPatterns=[
+              player+"b"+bot,
+              bot+"b"+player,
+              "b"+player+bot,
+              "b"+bot+player
+            ];
+            next=fillNextBestSlot(positions,strategicDefencePatterns);
+            console.log("fill " + next + " to cover last position");
+            if(next){
+              /*var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
+              nextBlock.classList.add(bot);*/
+            }
+            //#TODO: still remaining block is not filled
           }
         }
       }
     }
-
-  };
+  }
 
   /**
     * format winner order
@@ -127,9 +163,11 @@ function setupPlayerInput(){
   }
 
   /**
-    * Try to win first (look for two consecutive bot options and fill in the third)
+    * look for provided patters in the current positions
+    * and return best slot that matches the pattern
+    * return false if no such match
     */
-  function fill(positions,patterns){
+  function fillNextBestSlot(positions,patterns){
     //look for completed rows or columns in positions
     //return the winner if found
     console.log("patterns: " + patterns);
@@ -147,14 +185,14 @@ function setupPlayerInput(){
         result= [r,c];
       }
     }
-    if(result){
+    /*if(result){
       console.log("row/col result:" + result);
       return result;
-    }
+    }*/
+
     //check for completed positions diagonally
     var diag1=positions[0][0]+positions[1][1]+positions[2][2];
     var diag2=positions[0][2]+positions[1][1]+positions[2][0];
-    console.log("diag1:"+diag1+";diag2:"+diag2);
     if(patterns.includes(diag1)){
       var index=diag1.indexOf("b");
       r=index+1;
@@ -167,6 +205,11 @@ function setupPlayerInput(){
       result= [r,c];
     }
     console.log("after diagonal check result:" + result);
+    if(result){
+      console.log("findbestslot:trying to fill slot");
+      var nextBlock=document.querySelector("#r"+result[0]+"c"+result[1]);
+      nextBlock.classList.add(bot);
+    }
     return result;
   };
 
@@ -221,7 +264,6 @@ function setupPlayerInput(){
       }
       gamePositions.push(row);
     }
-    console.log(gamePositions);
     return gamePositions;
   };
 
