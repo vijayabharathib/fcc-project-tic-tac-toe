@@ -13,6 +13,10 @@ document.addEventListener("DOMContentLoaded",function(e){
 
 function setupPlayerOption(){
   var playerChoice=function(){
+    var buttons=document.querySelectorAll(".game button");
+    for(var i=0;i<buttons.length;i++){
+      buttons[i].classList.remove("reset");
+    }
     bot=(this.classList.contains("x")) ? "o" : "x";
     player=(bot==="x") ? "o" : "x";
     var game=document.querySelector('.game');
@@ -68,13 +72,31 @@ function setupPlayerInput(){
     if(winner){
       formatWinner(winner);
       result=(winner[0]==bot)? "Bot ("+ bot + ") wins." : "You (" + player + ") win!";
+      window.setTimeout(resetGame,3000);
     }else if (gameTie()){
       result="It's a tie!";
+      window.setTimeout(resetGame,3000);
     }
     var status=document.querySelector('.status');
     status.innerText=result;
     return result;
   }
+
+  function resetGame(){
+    bot="b";
+    player="b";
+    var game=document.querySelector('.game');
+    game.classList.remove('on');
+    game.classList.add('off');
+    var buttons=document.querySelectorAll(".game button");
+    for(var i=0;i<buttons.length;i++){
+      buttons[i].classList.add("reset");
+      buttons[i].classList.remove("x");
+      buttons[i].classList.remove("o");
+      buttons[i].classList.remove("win");
+    }
+  }
+
   function gameTie(){
     positions=getGamePositions();
     winner=getWinner(positions);
@@ -123,9 +145,11 @@ function setupPlayerInput(){
               player+"b"+bot,
               bot+"b"+player,
               "b"+player+bot,
-              "b"+bot+player
+              "b"+bot+player,
+              bot+player+"b",
+              player+bot+"b"
             ];
-            next=fillNextBestSlot(positions,strategicDefencePatterns);
+            next=fillNextBestSlot(positions,oneLastSlotPatterns);
             console.log("fill " + next + " to cover last position");
             if(next){
               /*var nextBlock=document.querySelector("#r"+next[0]+"c"+next[1]);
