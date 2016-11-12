@@ -1,22 +1,31 @@
+/**
+  * what: top brand
+  * why: prominant display for the user
+  */
 .brand {
-  margin-top: 0;
+  margin-top: 0; //reset h2
   font-size: 3em;
   text-align: center;
   text-shadow: 0 -1px $color-black-transparent-70,
-  0 -2px $color-black-transparent-70;
+  0 -2px $color-black-transparent-70; //embedded effect
 }
 
+/**
+  * what: the game board, it's shutter block that asks for user inputs
+  * why: show / hide based on status of the game
+  */
 .game {
-  position: relative;
-  margin: 0 auto;
+  position: relative; //parent for shutter that is absolutely positioned
+  margin: 0 auto; //center align
 
   .shutter {
-    position: absolute;
+    position: absolute; //overlay on top of game board
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     padding: .5em;
+    //reverse the effect of closing shutter when the game is on
     transition: color 300ms ease, transform 300ms ease 300ms;
     border-radius: 5px;
     background: $color-black-transparent-85;
@@ -26,10 +35,19 @@
     .message {
       text-align: center;
     }
+
+    .keybindings { //keyboard shortcut text
+      font-size: .45em;
+      text-align: center;
+    }
   }
 
   &.on { //close shutter when game starts
     .shutter {
+      /* text within the shutter shrinks on scale transform
+       * it doesn't look good, hence color is removed first
+       * and then the element is shrinked (after 300ms wait out)
+       */
       transform: scaleY(0);
       transition: color 300ms ease, transform 300ms ease 300ms;
       color: $color-black-transparent-85;
@@ -37,23 +55,40 @@
   }
 }
 
+/**
+  * what: game buttons / blocks and their relative styles when won/lost/tie
+  * why: clear indication to the user asking for inputs and feedback on game (won/lost/tie)
+  */
 button {
   width: 80px;
   height: 80px;
   margin: 10px;
+  //reverse the effect of reset class below
   transform: scale(1, 1);
-  transition: transform 300ms ease 600ms;
+  transition: transform 300ms ease 600ms; //600ms wait to allow the shutter to go away
   border: 0;
   border-radius: 3px;
   background: $color-shadow;
   box-shadow: inset 0 0 8px 4px $color-black-transparent-70;
 
-  &.reset {
+  &.won {
+    background-color: $color-green;
+  }
+
+  &.lost {
+    background-color: $color-red;
+  }
+
+  &.reset { //take the blocks out smoothly
     transform: scale(0, 0);
     transition: transform 300ms ease;
   }
 }
 
+/**
+  * what: game status and relative styles when won/lost/tie
+  * why: feedback to user
+  */
 h2 {
   &.status {
     display: inline-block;
@@ -76,14 +111,21 @@ h2 {
 
     &.tie {
       background-color: $color-orange;
+      //need a better contrast font, white doesn't stick
       color: $color-black-transparent-70;
     }
   }
 }
 
+/**
+  * what: option for user to select X or O
+  * why: contains prominant svg elements for user to select
+  */
 .players {
   width: 100%;
-  margin-top: 2em;
+  height: 3em;
+  margin-top: 1em;
+
   /**
     * the following float should be applied only to player choice buttons
     * NOT to the game buttons, otherwise, order of the boxes will move around
@@ -99,9 +141,6 @@ h2 {
   height: 80px;
 }
 
-.win {
-  background-color: $color-green;
-}
 
 .x {
   background-image: url('../images/x.svg');
